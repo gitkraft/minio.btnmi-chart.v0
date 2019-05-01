@@ -98,6 +98,60 @@ imagePullSecrets:
 {{- end -}}
 
 {{/*
+Return MinIO accessKey
+*/}}
+{{- define "minio.accessKey" -}}
+{{- if .Values.global.minio.accessKey }}
+    {{- .Values.global.minio.accessKey -}}
+{{- else if .Values.accessKey.password }}
+    {{- .Values.accessKey.password -}}
+{{- else if (not .Values.accessKey.forcePassword) }}
+    {{- randAlphaNum 10 -}}
+{{- else -}}
+    {{ required "An Access Key is required!" .Values.accessKey.password }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return MinIO secretKey
+*/}}
+{{- define "minio.secretKey" -}}
+{{- if .Values.global.minio.secretKey }}
+    {{- .Values.global.minio.secretKey -}}
+{{- else if .Values.secretKey.password }}
+    {{- .Values.secretKey.password -}}
+{{- else if (not .Values.secretKey.forcePassword) }}
+    {{- randAlphaNum 40 -}}
+{{- else -}}
+    {{ required "A Secret Key is required!" .Values.secretKey.password }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the credentials secret.
+*/}}
+{{- define "minio.secretName" -}}
+{{- if .Values.global.minio.existingSecret }}
+    {{- printf "%s" .Values.global.minio.existingSecret -}}
+{{- else if .Values.existingSecret -}}
+    {{- printf "%s" .Values.existingSecret -}}
+{{- else -}}
+    {{- printf "%s" (include "minio.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return true if a secret object should be created
+*/}}
+{{- define "minio.createSecret" -}}
+{{- if .Values.global.minio.existingSecret }}
+{{- else if .Values.existingSecret -}}
+{{- else -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the appropriate apiVersion for networkpolicy.
 */}}
 {{- define "networkPolicy.apiVersion" -}}
